@@ -13,6 +13,7 @@ Pkg.clone("https://github.com/jaak-s/Multitask.jl.git")
 
 ## Example usage
 ```julia
+## generating random model and data from it
 using Distributions
 Nfeat = 1000
 Ntasks = 100
@@ -34,7 +35,10 @@ Y = X * M
 ## using only known samples for training
 Xtrain = map(w -> X[w,:], W);
 Ytrain = map(t -> Y[W[t], t], 1:length(W));
+```
 
+Now we can build nuclear norm constrained model.
+```julia
 ## running nuclear norm MTL method
 using Multitask
 tau    = 2400
