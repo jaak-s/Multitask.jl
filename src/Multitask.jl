@@ -1,6 +1,6 @@
 module Multitask
 
-export multitaskFW
+export nuclearNormMT
 export power
 
 function power(A, n)
@@ -16,11 +16,11 @@ function power(A, n)
     return x, v/s, s
 end
 
-function multitaskFW(Xw::Array{Array{Float64,2},1},
+function nuclearNormMT(Xw::Array{Array{Float64,2},1},
                      Yw::Array{Array{Float64,1},1},
                      tau,
                      lambda=0.0, 
-                     nsteps=100)
+                     nsteps=200)
     Nfeat    = size(Xw[1], 2)
     Ntasks   = length(Xw)
     M = zeros(Nfeat, Ntasks)
@@ -30,7 +30,7 @@ function multitaskFW(Xw::Array{Array{Float64,2},1},
         for t = 1:Ntasks
             D[:,t] = - 2.0Xw[t]' * (Xw[t] * M[:,t] - Yw[t])
             if lambda > 0
-              D[:,t] -= - 2.0lambda * M[:,t]
+              D[:,t] += - 2.0lambda * M[:,t]
             end
         end
         ## 2. find 1st singular vectors
