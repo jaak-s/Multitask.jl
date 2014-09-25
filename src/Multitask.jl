@@ -16,7 +16,7 @@ function power(A, n)
     return x, v/s, s
 end
 
-function nuclearNormMT(Xw::Array{Array{Float64,2},1},
+function nuclearNormMT(Xw,
                      Yw::Array{Array{Float64,1},1},
                      tau,
                      lambda=0.0, 
