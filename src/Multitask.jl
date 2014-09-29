@@ -43,7 +43,7 @@ function nuclearNormMT(Xw,
     return M
 end
 
-function nuclearNormMTs(Xw,
+function nuclearNormMTSparse(Xw,
                      Yw::Array{Array{Float64,1},1},
                      tau,
                      lambda=0.0, 
@@ -57,7 +57,7 @@ function nuclearNormMTs(Xw,
         ## 1. negative gradient
         for t = 1:Ntasks
             #D[:,t] = - 2.0Xw[t] * (Xw[t]' * M[:,t] - Yw[t])
-            setSparseProd(D, t, Xnz[t][1], Xnz[t][2], Xnz[t][3], -2.0*(Xw[t]' * M[:,t] - Yw[t]) )
+            setSparseProd!(D, t, Xnz[t][1], Xnz[t][2], Xnz[t][3], -2.0*(Xw[t]' * M[:,t] - Yw[t]) )
             if lambda > 0
               D[:,t] += - 2.0lambda * M[:,t]
             end
@@ -71,11 +71,12 @@ function nuclearNormMTs(Xw,
     return M
 end
 
-function setSparseProd(res::Array{Float64,2}, col, xi, xj, xv, w)
-    for i = size(res, 1)
+## computes res[:,col] = X*w
+function setSparseProd!(res::Array{Float64,2}, col, xi, xj, xv, w)
+    for i = 1:size(res, 1)
         res[i, col] = 0.0
     end
-    for i = size(xi, 1)
+    for i = 1:size(xi, 1)
         res[ xi[i], col ] += xv[i] * w[xj[i]]
     end
 end
