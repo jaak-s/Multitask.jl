@@ -1,7 +1,7 @@
 module Multitask
 
 export nuclearNormMT
-export nuclearNormMTcol
+export nuclearNormMTSparse
 export power
 
 function power(A, n)
