@@ -47,7 +47,8 @@ function nuclearNormMTSparse(Xw,
                      Yw::Array{Array{Float64,1},1},
                      tau,
                      lambda=0.0, 
-                     nsteps=200)
+                     nsteps=200,
+                     bestStep=true)
     Nfeat    = size(Xw[1], 1)
     Ntasks   = length(Xw)
     M = zeros(Nfeat, Ntasks)
@@ -65,7 +66,19 @@ function nuclearNormMTSparse(Xw,
         ## 2. find 1st singular vectors
         u, v, s = power(D, 10)
         ## 3. add new solution
-        α = 2.0 / (i + 2)
+        if bestStep
+            n = 0.0
+            d = 0.0
+            for t = 1:Ntasks
+                yhat = Xw[t]' * M[:,t]
+                Xq   = Xw[t]' * (v[t] * tau * u)
+                n += (yhat - Yw[t])' * (yhat - Xq)
+                d += sum( (yhat - Xq).^2 )
+            end
+            α = min(1, max(0, n[1] / d[1])) 
+        else
+            α = 2.0 / (i + 2)
+        end
         M = (1 - α) * M + α * tau * u * v'
     end
     return M
