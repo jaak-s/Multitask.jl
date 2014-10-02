@@ -79,7 +79,10 @@ function nuclearNormMTSparse(Xw,
         else
             α = 2.0 / (i + 2)
         end
-        M = (1 - α) * M + α * tau * u * v'
+        M *= (1 - α)
+        for t = 1:Ntasks
+          M[:,t] += α * tau * v[t] * u
+        end
     end
     return M
 end
