@@ -43,17 +43,26 @@ function nuclearNormMT(Xw,
     return M
 end
 
+type FitMT
+  M::Matrix{Float64}
+  alphas::Vector{Float64}
+  sqerrors::Vector{Float64}
+  tau::Float64
+end
+
 function nuclearNormMTSparse(Xw,
                      Yw::Array{Array{Float64,1},1},
                      tau,
                      lambda=0.0, 
                      nsteps=200,
                      bestStep=true)
-    Nfeat    = size(Xw[1], 1)
-    Ntasks   = length(Xw)
+    Nfeat  = size(Xw[1], 1)
+    Ntasks = length(Xw)
     M = zeros(Nfeat, Ntasks)
     D = zeros(M)
     Xnz = map(x -> findnz(x), Xw)
+    alphas = Float64[]
+    sqerrors = Float64[]
     for i = 0:(nsteps-1)
         ## 1. negative gradient
         for t = 1:Ntasks
@@ -69,22 +78,26 @@ function nuclearNormMTSparse(Xw,
         if bestStep
             n = 0.0
             d = 0.0
+            sq = 0.0
             for t = 1:Ntasks
                 yhat = Xw[t]' * M[:,t]
                 Xq   = Xw[t]' * (v[t] * tau * u)
-                n += (yhat - Yw[t])' * (yhat - Xq)
-                d += sum( (yhat - Xq).^2 )
+                n  += (yhat - Yw[t])' * (yhat - Xq)
+                d  += sum( (yhat - Xq).^2 )
+                sq += sum( (yhat - Yw[t]) .^ 2 )
             end
             α = min(1, max(0, n[1] / d[1])) 
+            push!(sqerrors, sq)
         else
             α = 2.0 / (i + 2)
         end
+        push!(alphas, α)
         M *= (1 - α)
         for t = 1:Ntasks
           M[:,t] += α * tau * v[t] * u
         end
     end
-    return M
+    return FitMT(M, alphas, sqerrors, tau)
 end
 
 ## computes res[:,col] = X*w
