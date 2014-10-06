@@ -43,7 +43,7 @@ function nuclearNormMT(Xw,
     return M
 end
 
-type FitMT
+type MTFit
   M::Matrix{Float64}
   alphas::Vector{Float64}
   sqerrors::Vector{Float64}
@@ -97,7 +97,7 @@ function nuclearNormMTSparse(Xw,
           M[:,t] += α * tau * v[t] * u
         end
     end
-    return FitMT(M, alphas, sqerrors, tau)
+    return MTFit(M, alphas, sqerrors, tau)
 end
 
 ## computes res[:,col] = X*w
