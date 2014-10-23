@@ -55,21 +55,31 @@ function nuclearNormMTSparse(Xw,
                      tau,
                      lambda=0.0, 
                      nsteps=200,
-                     bestStep=true)
+                     bestStep=true,
+                     balanceTasks=true)
     Nfeat  = size(Xw[1], 1)
     Ntasks = length(Xw)
     M = zeros(Nfeat, Ntasks)
     D = zeros(M)
     Xnz = map(x -> findnz(x), Xw)
-    alphas = Float64[]
+    ## computing task weights
+    lambdaN = lambda
+    weights = ones(Ntasks)
+    if balanceTasks
+        Ns      = map(y -> length(y), Yw)
+        weights = map(n -> 1.0/n, Ns)
+        Naver   = sum(Ns) / Ntasks
+        lambdaN = lambda / Naver
+    end
+    alphas   = Float64[]
     sqerrors = Float64[]
     for i = 0:(nsteps-1)
         ## 1. negative gradient
         for t = 1:Ntasks
             #D[:,t] = - 2.0Xw[t] * (Xw[t]' * M[:,t] - Yw[t])
-            setSparseProd!(D, t, Xnz[t][1], Xnz[t][2], Xnz[t][3], -2.0*(Xw[t]' * M[:,t] - Yw[t]) )
+            setSparseProd!(D, t, Xnz[t][1], Xnz[t][2], Xnz[t][3], -2.0*weights[t]*(Xw[t]' * M[:,t] - Yw[t]) )
             if lambda > 0
-              D[:,t] += - 2.0lambda * M[:,t]
+              D[:,t] += - 2.0lambdaN * M[:,t]
             end
         end
         ## 2. find 1st singular vectors
@@ -82,9 +92,9 @@ function nuclearNormMTSparse(Xw,
             for t = 1:Ntasks
                 yhat = Xw[t]' * M[:,t]
                 Xq   = Xw[t]' * (v[t] * tau * u)
-                n  += (yhat - Yw[t])' * (yhat - Xq)
-                d  += sum( (yhat - Xq).^2 )
-                sq += sum( (yhat - Yw[t]) .^ 2 )
+                n  += weights[t] * (yhat - Yw[t])' * (yhat - Xq)
+                d  += weights[t] * sum( (yhat - Xq).^2 )
+                sq += weights[t] * sum( (yhat - Yw[t]) .^ 2 )
             end
             α = min(1, max(0, n[1] / d[1])) 
             push!(sqerrors, sq)
