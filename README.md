@@ -22,7 +22,7 @@ Nknown = 50:100
 Ncore = 10
 Mcore = randn(Nfeat, Ncore)
 U = randn(Ncore, Ntasks)
-## each column in M is a linear combination of Mcore vectos
+## each column in M is a linear combination of Mcore vectors
 M = Mcore * U
 ## setup samples
 W = Vector{Int64}[]
@@ -43,7 +43,7 @@ Now we can build nuclear norm constrained model.
 using Multitask
 tau    = 2400
 lambda = 0
-Nsteps = 200
+Nsteps = 400
 Mhat = nuclearNormMT(Xtrain, Ytrain, tau, lambda, Nsteps)
 
 ## predicting whole Y matrix
@@ -63,6 +63,7 @@ For comparison we train ridge regression for each task, i.e. single task learnin
 function regression(X, y, lambda)
     (X' * X + lambda * eye(size(X,2))) \ (X' * y)
 end
+## separate ridge regression for each task
 M1hat = zeros(M)
 for t = 1:length(Xtrain)
     M1hat[:,t] = regression(Xtrain[t], Ytrain[t], 1);
