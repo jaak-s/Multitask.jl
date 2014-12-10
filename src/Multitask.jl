@@ -35,7 +35,7 @@ function nuclearNormMT(Xw,
             end
         end
         ## 2. find 1st singular vectors
-        u, v, s = power(D, 10)
+        u, v, s = power(D, 20)
         ## 3. add new solution
         α = 2.0 / (i + 2)
         M = (1 - α) * M + α * tau * u * v'
